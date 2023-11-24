@@ -4,25 +4,24 @@ using UnityEngine;
 
 public class GUn : MonoBehaviour
 {
-    public float throwForce = 10f;
-    public float explosionRadius = 5f;
-    public float explosionForce = 10f;
+    public float throwForce = 1000f;
+    public float raycastRange = 20f;
 
     public GameObject forceFieldPrefab;
     private GameObject forceFieldInstance;
 
-    public GameObject explosionPrefab;
+    public GameObject forcePrefab;
 
     private bool hasExploded = false;
 
     // Start is called before the first frame update
     void Start()
     {
-        // Apply initial force
+        // Apply force
         Rigidbody rb = GetComponent<Rigidbody>();
         rb.AddForce(transform.forward * throwForce, ForceMode.Impulse);
 
-        //Apply force field
+        // apply force field
         forceFieldInstance = Instantiate(forceFieldPrefab, transform.position, Quaternion.identity);
         forceFieldInstance.SetActive(true);
         forceFieldInstance.SetActive(false);
@@ -31,41 +30,43 @@ public class GUn : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Check for player input to manually explode the grenade
+        // check for player input
         if (Input.GetMouseButtonDown(0))
         {
-            Explode();
+            ExplodeRaycast();
         }
     }
 
-    void Explode()
+    void ExplodeRaycast()
     {
         if (!hasExploded)
         {
-            // Instantiate explosion effect
-            Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+            // raycast to detect objects in front
+            Ray ray = new Ray(transform.position, transform.forward);
+            RaycastHit hit;
 
-            forceFieldInstance.SetActive(true);
-
-            // Apply force to nearby objects within the explosion radius
-            Collider[] colliders = Physics.OverlapSphere(transform.position, explosionRadius);
-            foreach (Collider hitCollider in colliders)
+            if (Physics.Raycast(ray, out hit, raycastRange))
             {
-                Rigidbody rb = hitCollider.GetComponent<Rigidbody>();
+                // instantiate explosion effect at the hit
+                Instantiate(forcePrefab, hit.point, Quaternion.identity);
 
-                if (rb != null)
+                forceFieldInstance.SetActive(true);
+
+                // apply force to the hit object
+                Rigidbody hitRb = hit.collider.GetComponent<Rigidbody>();
+                if (hitRb != null)
                 {
-                    // Adjust the force value as needed
-                    rb.AddExplosionForce(explosionForce, transform.position, explosionRadius);
+                    // adjust the force value as needed
+                    hitRb.AddForce(transform.forward * throwForce, ForceMode.Impulse);
                 }
 
-                // Implement your logic here, e.g., damage the object, apply force, etc.
+                
             }
 
-            // Mark the grenade as exploded to prevent multiple explosions
+            // mark to prevent multiple explosions
             hasExploded = true;
 
-            // Disable rendering and collision but keep the GameObject in the scene
+            // disable rendering and collision but keep the gameObject 
             Renderer renderer = GetComponent<Renderer>();
             Collider collider = GetComponent<Collider>();
 
@@ -79,15 +80,13 @@ public class GUn : MonoBehaviour
                 collider.enabled = false;
             }
 
-            // Respawn the grenade after a delay
-            Invoke("RespawnForce", 3f);
+            // Respawnafter delay
+            Invoke("RespawnForce", 1f);
         }
     }
 
     void RespawnForce()
     {
-        // Reset the grenade properties
         hasExploded = false;
-
     }
 }
