@@ -8,17 +8,24 @@ public class GUn : MonoBehaviour
     public float explosionRadius = 5f;
     public float explosionForce = 10f;
 
+    public GameObject forceFieldPrefab;
+    private GameObject forceFieldInstance;
+
     public GameObject explosionPrefab;
-    public GameObject grenadePrefab;  // Assign the grenade prefab in the Inspector
 
     private bool hasExploded = false;
 
     // Start is called before the first frame update
     void Start()
     {
-        // Apply initial force for throwing the grenade
+        // Apply initial force
         Rigidbody rb = GetComponent<Rigidbody>();
         rb.AddForce(transform.forward * throwForce, ForceMode.Impulse);
+
+        //Apply force field
+        forceFieldInstance = Instantiate(forceFieldPrefab, transform.position, Quaternion.identity);
+        forceFieldInstance.SetActive(true);
+        forceFieldInstance.SetActive(false);
     }
 
     // Update is called once per frame
@@ -37,6 +44,8 @@ public class GUn : MonoBehaviour
         {
             // Instantiate explosion effect
             Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+
+            forceFieldInstance.SetActive(true);
 
             // Apply force to nearby objects within the explosion radius
             Collider[] colliders = Physics.OverlapSphere(transform.position, explosionRadius);
@@ -71,11 +80,11 @@ public class GUn : MonoBehaviour
             }
 
             // Respawn the grenade after a delay
-            Invoke("RespawnGrenade", 3f);
+            Invoke("RespawnForce", 3f);
         }
     }
 
-    void RespawnGrenade()
+    void RespawnForce()
     {
         // Reset the grenade properties
         hasExploded = false;
