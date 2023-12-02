@@ -7,10 +7,13 @@ public class GUn : MonoBehaviour
     public float throwForce = 1000f;
     public float raycastRange = 20f;
 
-    public GameObject forceFieldPrefab;
-    private GameObject forceFieldInstance;
+    public GameObject bulletPrefab;
 
-    public GameObject forcePrefab;
+    public GameObject ricochetBulletPrefab;
+    public float fireCooldown = 0.3f; // Cooldown time in seconds
+
+    private bool canFire = true;
+    private bool isFiring = false;
 
     private bool hasExploded = false;
 
@@ -20,11 +23,6 @@ public class GUn : MonoBehaviour
         // Apply force
         Rigidbody rb = GetComponent<Rigidbody>();
         rb.AddForce(transform.forward * throwForce, ForceMode.Impulse);
-
-        // apply force field
-        forceFieldInstance = Instantiate(forceFieldPrefab, transform.position, Quaternion.identity);
-        forceFieldInstance.SetActive(true);
-        forceFieldInstance.SetActive(false);
     }
 
     // Update is called once per frame
@@ -34,6 +32,24 @@ public class GUn : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             ExplodeRaycast();
+        }
+
+        if (Input.GetMouseButtonDown(1) && canFire)
+        {
+            isFiring = true;
+            Ricochet();
+        }
+
+        if (isFiring)
+        {
+            // Handle firing cooldown
+            fireCooldown -= Time.deltaTime;
+            if (fireCooldown <= 0)
+            {
+                canFire = true;
+                fireCooldown = 1.0f; // Reset cooldown
+                isFiring = false;
+            }
         }
     }
 
@@ -48,9 +64,10 @@ public class GUn : MonoBehaviour
             if (Physics.Raycast(ray, out hit, raycastRange))
             {
                 // instantiate explosion effect at the hit
-                Instantiate(forcePrefab, hit.point, Quaternion.identity);
+                GameObject newBullet = Instantiate(bulletPrefab, hit.point, Quaternion.identity);
 
-                forceFieldInstance.SetActive(true);
+                // Set the initial velocity to move in the forward direction
+                newBullet.GetComponent<Rigidbody>().velocity = transform.forward * throwForce;
 
                 // apply force to the hit object
                 Rigidbody hitRb = hit.collider.GetComponent<Rigidbody>();
@@ -59,8 +76,6 @@ public class GUn : MonoBehaviour
                     // adjust the force value as needed
                     hitRb.AddForce(transform.forward * throwForce, ForceMode.Impulse);
                 }
-
-
             }
 
             // mark to prevent multiple explosions
@@ -81,12 +96,22 @@ public class GUn : MonoBehaviour
             }
 
             // Respawnafter delay
-            Invoke("RespawnForce", 1f);
+            Invoke("RespawnForce", 0.1f);
         }
     }
 
     void RespawnForce()
     {
         hasExploded = false;
+    }
+    void Ricochet()
+    {
+        if (!hasExploded)
+        {
+            Instantiate(ricochetBulletPrefab, transform.position, Quaternion.identity);
+
+            // Set to false after the ricochet
+            canFire = false;
+        }
     }
 }

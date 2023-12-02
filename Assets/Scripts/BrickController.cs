@@ -12,24 +12,19 @@ public class BrickController : MonoBehaviour
     public delegate void OnBrickRestore();
     public static event OnBrickRestore onBrickRestore;
 
-    private bool isRestored = false; 
-
+    private bool isRestored = false;
 
     void OnRestore(InputValue value)
     {
-        if(value.isPressed && !isRestored)
+        if (value.isPressed && !isRestored)
         {
-            onBrickRestore.Invoke();
-
+            onBrickRestore?.Invoke();
             isRestored = true;
-            StartCoroutine(AllowRestore());
-
-
+            StartCoroutine(ResetRestorationFlag());
         }
     }
 
-
-    IEnumerator AllowRestore()
+    IEnumerator ResetRestorationFlag()
     {
         yield return new WaitForSeconds(2.0f);
         isRestored = false;

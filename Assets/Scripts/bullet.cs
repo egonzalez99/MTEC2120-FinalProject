@@ -6,20 +6,20 @@ using UnityEngine;
 public class bullet : MonoBehaviour
 {
     [SerializeField]
-    Rigidbody rb;
+    private float bulletSpeed = 10.0f;
 
-    [SerializeField]
-    private float bSpeed = 10.0f;
+    private Rigidbody rb;
 
     private void Start()
     {
-        rb = GetComponent<Rigidbody>(); 
-        rb.velocity = transform.forward * bSpeed;
+        rb = GetComponent<Rigidbody>();
+        // Shoot in the direction the player is facing
+        rb.velocity = transform.forward * bulletSpeed;
     }
 
     private void OnCollisionEnter(Collision other)
     {
-        Debug.Log("bullet hit" + other.gameObject.name);
+        Debug.Log("Bullet hit " + other.gameObject.name);
         Destroy(gameObject, 2f);
     }
 }
