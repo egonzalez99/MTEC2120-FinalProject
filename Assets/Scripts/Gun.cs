@@ -60,7 +60,7 @@ public class GUn : MonoBehaviour
                     hitRb.AddForce(transform.forward * throwForce, ForceMode.Impulse);
                 }
 
-                
+
             }
 
             // mark to prevent multiple explosions
