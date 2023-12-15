@@ -51,6 +51,7 @@ public class GUn : MonoBehaviour
                 isFiring = false;
             }
         }
+
     }
 
     void ExplodeRaycast()
